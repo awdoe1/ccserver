@@ -1,0 +1,82 @@
+n = peripheral.wrap("bottom")
+m = peripheral.wrap("top")
+s = peripheral.wrap("right")
+
+m.host("ccserver","CCServer") --registers computer: protocol,name
+
+local validSender = false
+valid = false
+tserved, vserved, dserved = 0
+count = true -- If you dont want the server to count request statics, set the value of this variable to "false" without qoutes.
+modemSide = "left" -- change to the side of the computer your modem is on
+whitelist = true -- If you dont want to use a whitelist, change the value to "false" without quotes. This is not recommended on Multiplayer, but it does not make any difference on a Singleplayer World.
+users = {"username1", "username2" } -- Change this to the names for the users you want to have. Make sure the usernames are in the same order as in the password table. Changing the order is fine, but you must maintain the same order in both the users and passwords tables. Incorrect orders WILL cause 2 or more users not being able to log in!
+passwords = {"password1", "password2" } -- Change this to the passwords for the users defined in the variable above. Again, make sure the passwords for users are in the same order as the usernames.
+senders = { 1, 2, 3, 4 } -- change this to the ID's of the all computers you want to accept requests from if you use a whitelist. If you do not use a whitelist, DO NOT REMOVE THIS LINE! Doing so will cause the program to crash everytime it is run, even though the variable is not used.
+
+print("CCserver")
+sleep(1)
+
+---------------startup^
+---------------functionsv
+
+local function clear 
+  term.clear() 
+  term.setCursorPos(1, 1) 
+end
+
+---------------functions^
+---------------ifsv
+
+if count == true then
+ print(tserved.." total requests received this session.")
+ print(vserved.." requests completed this session.")
+ print(dserved.." requests denied this session.")
+elseif count == false then
+ print("Request statics have been disabled.")
+else
+ rednet.close(modemSide)
+ term.clear()
+ term.setCursorPos(1, 1)
+ print("Error: Counter setting is not boolean and the server can not continue.")
+ print("The server program will exit automatically in 10 minutes. Or you can hold down Ctrl+T for 1 second.")
+ print("After that, please set the variable \"count\" in the source code to either \"true\" or \"false\" WITHOUT QUOTATION MARKS. Doing this with quotation marks will cause the same error.")
+ sleep(600)
+ shell.exit()
+end
+
+clear()
+
+---------------ifs^
+---------------mainloopV
+ 
+while true do 
+ validSender = false
+ senderId, message, distance = rednet.receive()
+ for i,v in ipairs(senders) do
+  tserved = tserved + 1
+  if v == senderId then
+   validSender = true
+   break
+  else
+   rednet.send(senderId, "301", true) -- Send response code 301 - which means Not Whitelisted.
+   dserved = dserved + 1
+   clear()
+  end
+ end
+ if validSender then
+  for i,v in ipairs(users) do
+   if message == v then
+ password = passwords[i]
+ rednet.send(senderId, password, true)
+ vserved = vserved + 1
+ clear()
+ break
+   else
+ rednet.send(senderId, "300", true) -- Send response code 300 - which means Bad Auth.
+ dserved = dserved + 1
+ clear()
+   end
+  end
+ end
+end
