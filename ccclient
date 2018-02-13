@@ -1,0 +1,49 @@
+os.pullEvent = os.pullEventRaw
+local failed = true
+busr = "nsliq" -- If you ever happen to be unable to log in for some reason, you can use this username as a backup.
+bpass = "zuFUkVEjQKjkLQhTdpFMheNF" -- If you ever happen to be unable to log in for some reason, you can use this password as a backup.
+
+password_server = 0 -- change to the ID of your password server computer
+rednet.open("bottom") -- change to the side your rednet modem is on
+while true do
+term.clear()
+term.setCursorPos(1,1)
+print("Please select an option.")
+print("[1] Login")
+print("[2] Shutdown")
+write("> ")
+input = read()
+if input == "2" then
+ os.shutdown()
+elseif input == "1" then
+ print("Please login.")
+ write("Username: ")
+ username = read()
+ write("Password: ")
+ password = read("*")
+ if username == busr then
+ if password == bpass then
+print("Access granted")
+break
+ end
+ end
+ rednet.send(password_server, username, true)
+ senderId, message, distance = rednet.receive(5)
+ if message == "300" then
+ print("Invalid Username or Password.")
+ sleep(3)
+ elseif password == message then
+ failed = false
+ term.clear()
+ term.setCursorPos(1,1)
+ print("Welcome ", username)
+ break;
+ else
+ print("Invalid Username or Password.")
+ sleep(3)
+ end
+else
+ print("Invalid Command.")
+ sleep(2)
+end
+end
